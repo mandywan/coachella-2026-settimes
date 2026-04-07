@@ -8,20 +8,24 @@
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #fff; color: #333; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
   .top-bar { flex-shrink: 0; padding: 10px 12px 6px; }
+  .top-bar-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
   .top-bar h1 { font-size: 14px; font-weight: 700; letter-spacing: 0.5px; color: #333; }
   .top-bar p { font-size: 10px; color: #999; margin-top: 1px; }
-  .day-tabs { flex-shrink: 0; display: flex; gap: 6px; padding: 0 12px 8px; }
+  .time-format { display: inline-flex; gap: 4px; background: #f3f3f3; border-radius: 7px; padding: 2px; }
+  .tf-btn { border: none; background: transparent; color: #777; font-size: 10px; font-weight: 600; padding: 4px 7px; border-radius: 5px; cursor: pointer; }
+  .tf-btn.active { background: #d4a574; color: #fff; }
+  .day-tabs { flex-shrink: 0; display: flex; gap: 6px; padding: 0 12px 6px; }
   .day-tab { flex: 1; padding: 5px 0; border-radius: 8px; border: none; font-size: 11px; font-weight: 600; cursor: pointer; background: #f0f0f0; color: #999; }
   .day-tab.active { background: #d4a574; color: #fff; }
   .sched-container { flex: 1; display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
-  .hdr-row { flex-shrink: 0; display: flex; overflow: hidden; }
-  .gutter-spacer { width: 36px; flex-shrink: 0; }
+  .hdr-row { flex-shrink: 0; display: flex; overflow: hidden; padding-bottom: 2px; }
+  .gutter-spacer { width: 26px; flex-shrink: 0; }
   .stage-hdrs { flex: 1; overflow: hidden; min-height: 0; position: relative; }
   .stage-hdrs-inner { display: flex; }
   .shdr { flex-shrink: 0; font-size: 8px; font-weight: 700; text-align: center; padding: 5px 1px; text-transform: uppercase; letter-spacing: 0.2px; line-height: 1.2; color: #333; }
   .body-row { flex: 1; display: flex; min-height: 0; overflow: hidden; }
-  .time-gutter { width: 36px; flex-shrink: 0; position: relative; overflow: hidden; }
-  .tlbl { position: absolute; right: 5px; font-size: 9px; color: #bbb; line-height: 1; transform: translateY(-50%); white-space: nowrap; }
+  .time-gutter { width: 26px; flex-shrink: 0; position: relative; overflow: hidden; }
+  .tlbl { position: absolute; right: 4px; font-size: 9px; color: #bbb; line-height: 1.2; transform: translateY(-50%); white-space: normal; text-align: right; }
   .stages-scroll { flex: 1; overflow: scroll; -webkit-overflow-scrolling: touch; }
   .stages-inner { display: flex; position: relative; }
   .scol { flex-shrink: 0; position: relative; border-left: 0.5px solid #e8e8e8; }
@@ -38,8 +42,16 @@
 </head>
 <body>
 <div class="top-bar">
-  <h1>COACHELLA 2026 — WEEKEND 1</h1>
-  <p>Scroll ↔ for stages · All times 24h</p>
+  <div class="top-bar-row">
+    <div>
+      <h1>COACHELLA 2026 — WEEKEND 1</h1>
+      <p id="times-note">Scroll ↔ for stages · Toggle 24h/AM-PM</p>
+    </div>
+    <div class="time-format" aria-label="Time format">
+      <button class="tf-btn" id="tf-24" onclick="setTimeFormat('24')">24h</button>
+      <button class="tf-btn" id="tf-12" onclick="setTimeFormat('12')">AM/PM</button>
+    </div>
+  </div>
 </div>
 <div class="day-tabs">
   <button class="day-tab active" onclick="showDay(0)">Friday</button>
@@ -65,6 +77,21 @@ const clsMap=['s0','s1','s2','s3','s4','s5','s6','s7'];
 
 function tm(t){const[h,m]=t.split(':').map(Number);return(h+12)*60+m;}
 function f24(m){let h=Math.floor(m/60)%24;return String(h).padStart(2,'0')+':'+String(m%60).padStart(2,'0');}
+function f12(m){
+  let h=Math.floor(m/60)%24;
+  const mm=String(m%60).padStart(2,'0');
+  const ap=h>=12?'PM':'AM';
+  h=h%12||12;
+  return h+':'+mm+' '+ap;
+}
+
+function axisTime(m){
+  const h24=Math.floor(m/60)%24;
+  if(timeFormat==='24') return String(h24).padStart(2,'0');
+  if(h24===0) return '12<br>AM';
+  if(h24===12) return '12<br>PM';
+  return String(h24%12||12);
+}
 
 const fri=[
   [0,'Anyma','12:00','12:50'],[0,'Sabrina Carpenter','9:05','10:35'],[0,'The xx','7:00','7:55'],
@@ -130,6 +157,27 @@ const sun=[
 
 const days=[fri,sat,sun];
 let curDay=0;
+let timeFormat=localStorage.getItem('timeFormat')==='24'?'24':'12';
+
+function fmtTime(m){return timeFormat==='12'?f12(m):f24(m);}
+
+function syncTimeFormatUI(){
+  const b24=document.getElementById('tf-24');
+  const b12=document.getElementById('tf-12');
+  const note=document.getElementById('times-note');
+  if(!b24||!b12||!note) return;
+  b24.classList.toggle('active',timeFormat==='24');
+  b12.classList.toggle('active',timeFormat==='12');
+  note.textContent='Scroll ↔ for stages · All times '+(timeFormat==='12'?'AM/PM':'24h');
+}
+
+function setTimeFormat(v){
+  if(v!=='12'&&v!=='24') return;
+  timeFormat=v;
+  localStorage.setItem('timeFormat',v);
+  syncTimeFormatUI();
+  build(days[curDay]);
+}
 
 function build(sets){
   const allM=sets.flatMap(s=>[tm(s[2]),tm(s[3])]);
@@ -170,7 +218,7 @@ function build(sets){
     const l=document.createElement('div');
     l.className='tlbl';
     l.style.top=top+'px';
-    l.textContent=f24(m);
+    l.innerHTML=axisTime(m);
     tg.appendChild(l);
   }
 
@@ -203,7 +251,7 @@ function build(sets){
       const b=document.createElement('div');
       b.className='set '+clsMap[si];
       b.style.cssText=`top:${top}px;height:${h}px;font-size:${fs}px;`;
-      b.innerHTML=`<div class="an">${s[1]}</div><div class="at">${f24(sm)}–${f24(em)}</div>`;
+      b.innerHTML=`<div class="an">${s[1]}</div><div class="at">${fmtTime(sm)}–${fmtTime(em)}</div>`;
       col.appendChild(b);
     });
     inner.appendChild(col);
@@ -212,8 +260,10 @@ function build(sets){
   scroll.scrollLeft=0;
   scroll.scrollTo(0,0);
   hc.style.transform=`translateX(-${scroll.scrollLeft}px)`;
+  tg.style.transform=`translateY(-${scroll.scrollTop}px)`;
   scroll.onscroll=()=>{
     document.getElementById('stage-hdrs').style.transform=`translateX(-${scroll.scrollLeft}px)`;
+    document.getElementById('time-gutter').style.transform=`translateY(-${scroll.scrollTop}px)`;
   };
 }
 
@@ -223,7 +273,7 @@ function showDay(i){
   build(days[i]);
 }
 
-window.addEventListener('load',()=>showDay(0));
+window.addEventListener('load',()=>{syncTimeFormatUI();showDay(0);});
 window.addEventListener('resize',()=>build(days[curDay]));
 </script>
 </body>
