@@ -5,42 +5,195 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>Coachella 2026</title>
 <style>
+  :root {
+    --bg: #ffffff;
+    --panel: #ffffff;
+    --text: #342c29;
+    --muted: #7b706a;
+    --soft: #aea39d;
+    --line: rgba(133, 109, 96, 0.12);
+    --line-soft: rgba(133, 109, 96, 0.07);
+  }
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #fff; color: #333; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
-  .top-bar { flex-shrink: 0; padding: 10px 12px 6px; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .top-bar { flex-shrink: 0; padding: 8px 12px 4px; }
   .top-bar-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
-  .top-bar h1 { font-size: 14px; font-weight: 700; letter-spacing: 0.5px; color: #333; }
-  .top-bar p { font-size: 10px; color: #999; margin-top: 1px; }
-  .time-format { display: inline-flex; gap: 4px; background: #f3f3f3; border-radius: 7px; padding: 2px; }
-  .tf-btn { border: none; background: transparent; color: #777; font-size: 10px; font-weight: 600; padding: 4px 7px; border-radius: 5px; cursor: pointer; }
-  .tf-btn.active { background: #d4a574; color: #fff; }
+  .top-bar h1 { font-size: 13px; font-weight: 800; letter-spacing: 0.7px; color: #2e2623; }
+  .controls { display: flex; align-items: center; gap: 6px; }
+  .time-format {
+    display: inline-flex;
+    gap: 3px;
+    background: #f3f3f3;
+    border-radius: 7px;
+    padding: 2px;
+  }
+  .tf-btn {
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 700;
+    padding: 4px 7px;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  .tf-btn.active {
+    background: #666;
+    color: #fff;
+  }
+  .sched-mode {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: #f3f3f3;
+    border-radius: 7px;
+    padding: 2px 3px 2px 7px;
+    min-height: 25px;
+  }
+  .sched-mode-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .sched-mode-btn {
+    border: none;
+    background: #d6d6d6;
+    color: #666;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 4px 7px;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  .sched-mode-btn.active {
+    background: #666;
+    color: #fff;
+  }
   .day-tabs { flex-shrink: 0; display: flex; gap: 6px; padding: 0 12px 6px; }
-  .day-tab { flex: 1; padding: 5px 0; border-radius: 8px; border: none; font-size: 11px; font-weight: 600; cursor: pointer; background: #f0f0f0; color: #999; line-height: 1.15; }
-  .day-tab.active { background: #d4a574; color: #fff; }
+  .day-tab {
+    flex: 1;
+    padding: 5px 0;
+    border-radius: 8px;
+    border: none;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    background: #f0f0f0;
+    color: #999;
+    line-height: 1.15;
+  }
+  .day-tab.active {
+    background: #666;
+    color: #fff;
+  }
   .day-tab small { display: block; font-size: 9px; font-weight: 500; opacity: 0.9; margin-top: 1px; }
-  .sched-container { flex: 1; display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
-  .hdr-row { flex-shrink: 0; display: flex; overflow: hidden; padding-bottom: 2px; }
+  .sched-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+    background: var(--panel);
+  }
+  .hdr-row {
+    flex-shrink: 0;
+    display: flex;
+    overflow: hidden;
+    padding-bottom: 2px;
+  }
   .gutter-spacer { width: 26px; flex-shrink: 0; }
   .stage-hdrs { flex: 1; overflow: hidden; min-height: 0; position: relative; }
   .stage-hdrs-inner { display: flex; }
-  .shdr { flex-shrink: 0; font-size: 8px; font-weight: 700; text-align: center; padding: 5px 1px; text-transform: uppercase; letter-spacing: 0.2px; line-height: 1.2; color: #333; }
+  .shdr {
+    flex-shrink: 0;
+    font-size: 9px;
+    font-weight: 800;
+    text-align: center;
+    padding: 5px 1px;
+    text-transform: uppercase;
+    letter-spacing: 0.2px;
+    line-height: 1.2;
+    color: #333;
+  }
   .body-row { flex: 1; display: flex; min-height: 0; overflow: hidden; }
   .time-gutter { width: 26px; flex-shrink: 0; position: relative; overflow: hidden; }
-  .tlbl { position: absolute; right: 4px; font-size: 9px; color: #bbb; line-height: 1.2; transform: translateY(-50%); white-space: normal; text-align: right; }
-  .stages-scroll { flex: 1; overflow: scroll; -webkit-overflow-scrolling: touch; }
+  .tlbl {
+    position: absolute;
+    right: 4px;
+    font-size: 9px;
+    color: #bbb;
+    line-height: 1.2;
+    transform: translateY(-50%);
+    white-space: normal;
+    text-align: right;
+  }
+  .stages-scroll { flex: 1; overflow: scroll; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .stages-scroll::-webkit-scrollbar { display: none; }
   .stages-inner { display: flex; position: relative; }
   .scol { flex-shrink: 0; position: relative; border-left: 0.5px solid #e8e8e8; }
-  .hline { position: absolute; left: 0; right: 0; border-top: 0.5px solid #e8e8e8; }
-  .hline-half { position: absolute; left: 0; right: 0; border-top: 0.5px dashed #efefef; }
+  .hline { position: absolute; left: 0; right: 0; border-top: 1px solid var(--line); }
+  .hline-half { position: absolute; left: 0; right: 0; border-top: 1px dashed var(--line-soft); }
   .now-line { position: absolute; left: 0; right: 0; border-top: 2px solid #ff5a5f; pointer-events: none; z-index: 20; }
   .now-label { position: absolute; right: 2px; transform: translateY(-50%); font-size: 8px; font-weight: 700; line-height: 1; color: #ff5a5f; background: #fff; padding: 1px 3px; border-radius: 999px; pointer-events: none; z-index: 21; }
-  .set { position: absolute; left: 1px; right: 1px; border-radius: 3px; padding: 2px 3px; overflow: hidden; }
-  .set .an { font-weight: 700; line-height: 1.15; }
-  .set .at { opacity: 0.65; line-height: 1.1; }
-  .s0{background:#d4b5e8;color:#5a3d8a}.s1{background:#c9d9a9;color:#5a8a3d}
-  .s2{background:#e8c4a8;color:#8a5a3d}.s3{background:#e8a8c9;color:#8a3d5a}
-  .s4{background:#b8d4e8;color:#3d5a8a}.s5{background:#d9e8a9;color:#7a8a2c}
-  .s6{background:#f0d8b8;color:#8a6a2c}.s7{background:#e8b8b8;color:#8a3a3a}
+  .set {
+    position: absolute;
+    left: 1px;
+    right: 1px;
+    border-radius: 5px;
+    padding: 3px 14px 2px 4px;
+    overflow: hidden;
+    cursor: pointer;
+  }
+  .set .an { font-size: 1.08em; font-weight: 800; line-height: 1.12; }
+  .set .at { font-size: 0.86em; opacity: 0.6; line-height: 1.05; font-weight: 600; }
+  .set.compact .at { display: none; }
+  .s0{background:#ddd0e8;color:#5a3d8a}.s1{background:#d8e2c3;color:#5a8a3d}
+  .s2{background:#edd4bf;color:#8a5a3d}.s3{background:#ebc4d7;color:#8a3d5a}
+  .s4{background:#caddec;color:#3d5a8a}.s5{background:#e0e9bf;color:#7a8a2c}
+  .s6{background:#f1dfc6;color:#8a6a2c}.s7{background:#ebcaca;color:#8a3a3a}
+  .set.greyed{background:#e3e3e3!important;color:#8a7f7b!important;}
+  .pick-btn{position:absolute;bottom:2px;right:2px;width:13px;height:13px;border-radius:999px;border:none;background:rgba(255,255,255,0.55);color:inherit;font-size:9px;font-weight:800;line-height:1;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;flex-shrink:0;}
+  .pick-btn.hidden{display:none;}
+  .pick-btn.on{background:rgba(0,0,0,0.6);color:#fff;border-color:transparent;}
+  .set-tip {
+    position: fixed;
+    left: 0;
+    top: 0;
+    max-width: min(220px, calc(100vw - 20px));
+    background: rgba(44, 39, 36, 0.96);
+    color: #fff;
+    border-radius: 10px;
+    padding: 8px 10px;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22);
+    z-index: 40;
+    pointer-events: none;
+  }
+  .set-tip.hidden { display: none; }
+  .set-tip::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: -5px;
+    width: 10px;
+    height: 10px;
+    background: inherit;
+    transform: translateX(-50%) rotate(45deg);
+  }
+  .set-tip.below::after {
+    top: -5px;
+    bottom: auto;
+  }
+  .set-tip-title { font-size: 12px; font-weight: 800; line-height: 1.2; }
+  .set-tip-time { margin-top: 3px; font-size: 11px; line-height: 1.2; color: rgba(255,255,255,0.78); }
 </style>
 </head>
 <body>
@@ -49,9 +202,15 @@
     <div>
       <h1>COACHELLA 2026 — WEEKEND 1</h1>
     </div>
-    <div class="time-format" aria-label="Time format">
-      <button class="tf-btn" id="tf-24" onclick="setTimeFormat('24')">24h</button>
-      <button class="tf-btn" id="tf-12" onclick="setTimeFormat('12')">AM/PM</button>
+    <div class="controls">
+      <div class="time-format" aria-label="Time format">
+        <button class="tf-btn" id="tf-24" onclick="setTimeFormat('24')">24h</button>
+        <button class="tf-btn" id="tf-12" onclick="setTimeFormat('12')">AM/PM</button>
+      </div>
+      <div class="sched-mode" aria-label="My Schedule mode">
+        <span class="sched-mode-label">My Schedule</span>
+        <button class="sched-mode-btn" id="sched-mode-toggle" onclick="toggleScheduleMode()">Off</button>
+      </div>
     </div>
   </div>
 </div>
@@ -72,9 +231,13 @@
     </div>
   </div>
 </div>
+<div class="set-tip hidden" id="set-tip" role="status" aria-live="polite">
+  <div class="set-tip-title" id="set-tip-title"></div>
+  <div class="set-tip-time" id="set-tip-time"></div>
+</div>
 <script>
 const stages=['Coachella','Outdoor','Sonora','Gobi','Mojave','Sahara','Yuma','Quasar'];
-const hdrBg=['#d4b5e8','#c9d9a9','#e8c4a8','#e8a8c9','#b8d4e8','#d9e8a9','#f0d8b8','#e8b8b8'];
+const hdrBg=['#ddd0e8','#d8e2c3','#edd4bf','#ebc4d7','#caddec','#e0e9bf','#f1dfc6','#ebcaca'];
 const clsMap=['s0','s1','s2','s3','s4','s5','s6','s7'];
 
 function tm(t){const[h,m]=t.split(':').map(Number);return(h+12)*60+m;}
@@ -169,10 +332,14 @@ const forceNowPreview=urlParams.get('previewNow')==='1';
 const previewDayRaw=Number(urlParams.get('previewDay'));
 const previewDayIndex=Number.isInteger(previewDayRaw)&&previewDayRaw>=0&&previewDayRaw<festivalDates.length?previewDayRaw:null;
 const previewTimeRaw=urlParams.get('previewTime');
+let mySchedule={};
+try{mySchedule=JSON.parse(localStorage.getItem('mySchedule')||'{}');}catch(e){mySchedule={};}
 let curDay=0;
 let timeFormat=localStorage.getItem('timeFormat')==='24'?'24':'12';
+let scheduleMode=localStorage.getItem('scheduleMode')==='on';
 let currentLayout=null;
 let nowIndicatorTimer=null;
+let activeTooltipKey=null;
 
 function fmtTime(m){return timeFormat==='12'?f12(m):f24(m);}
 
@@ -215,11 +382,16 @@ function getForcedPreviewNow(baseNow=new Date()){
 function syncTimeFormatUI(){
   const b24=document.getElementById('tf-24');
   const b12=document.getElementById('tf-12');
-  const note=document.getElementById('times-note');
-  if(!b24||!b12||!note) return;
+  if(!b24||!b12) return;
   b24.classList.toggle('active',timeFormat==='24');
   b12.classList.toggle('active',timeFormat==='12');
-  note.textContent='Scroll ↔ for stages · All times '+(timeFormat==='12'?'AM/PM':'24h');
+}
+
+function syncScheduleModeUI(){
+  const btn=document.getElementById('sched-mode-toggle');
+  if(!btn) return;
+  btn.classList.toggle('active',scheduleMode);
+  btn.textContent=scheduleMode?'On':'Off';
 }
 
 function setTimeFormat(v){
@@ -227,6 +399,14 @@ function setTimeFormat(v){
   timeFormat=v;
   localStorage.setItem('timeFormat',v);
   syncTimeFormatUI();
+  build(days[curDay]);
+}
+
+function toggleScheduleMode(){
+  scheduleMode=!scheduleMode;
+  localStorage.setItem('scheduleMode',scheduleMode?'on':'off');
+  syncScheduleModeUI();
+  hideSetTooltip();
   build(days[curDay]);
 }
 
@@ -298,7 +478,73 @@ function startNowIndicatorTimer(){
   nowIndicatorTimer=setInterval(()=>updateNowIndicator(),30000);
 }
 
+function setKey(dayIdx,s){return dayIdx+'|'+s[0]+'|'+s[2]+'|'+s[1];}
+
+function applyPickedState(){
+  const allSets=document.querySelectorAll('#stages-inner .set[data-key]');
+  const hasPicks=scheduleMode&&[...allSets].some(el=>mySchedule[el.dataset.key]);
+  allSets.forEach(el=>{
+    const picked=!!mySchedule[el.dataset.key];
+    el.classList.toggle('greyed',scheduleMode&&hasPicks&&!picked);
+    const btn=el.querySelector('.pick-btn');
+    if(btn){
+      btn.classList.toggle('on',picked);
+      btn.classList.toggle('hidden',!scheduleMode);
+      btn.textContent=picked?'✓':'+';
+    }
+  });
+}
+
+function togglePick(k){
+  if(mySchedule[k])delete mySchedule[k];
+  else mySchedule[k]=true;
+  localStorage.setItem('mySchedule',JSON.stringify(mySchedule));
+  applyPickedState();
+}
+
+function hideSetTooltip(){
+  const tip=document.getElementById('set-tip');
+  if(!tip) return;
+  tip.classList.add('hidden');
+  tip.classList.remove('below');
+  activeTooltipKey=null;
+}
+
+function showSetTooltip(card,title,timeRange){
+  const tip=document.getElementById('set-tip');
+  const titleEl=document.getElementById('set-tip-title');
+  const timeEl=document.getElementById('set-tip-time');
+  if(!tip||!titleEl||!timeEl) return;
+
+  if(activeTooltipKey===card.dataset.key&&!tip.classList.contains('hidden')){
+    hideSetTooltip();
+    return;
+  }
+
+  titleEl.textContent=title;
+  timeEl.textContent=timeRange;
+  tip.classList.remove('hidden');
+  tip.classList.remove('below');
+
+  const rect=card.getBoundingClientRect();
+  const margin=10;
+  const tipRect=tip.getBoundingClientRect();
+  let left=rect.left+(rect.width/2)-(tipRect.width/2);
+  left=Math.max(margin,Math.min(left,window.innerWidth-tipRect.width-margin));
+
+  let top=rect.top-tipRect.height-10;
+  if(top<margin){
+    top=Math.min(window.innerHeight-tipRect.height-margin,rect.bottom+10);
+    tip.classList.add('below');
+  }
+
+  tip.style.left=left+'px';
+  tip.style.top=top+'px';
+  activeTooltipKey=card.dataset.key;
+}
+
 function build(sets){
+  hideSetTooltip();
   const allM=sets.flatMap(s=>[tm(s[2]),tm(s[3])]);
   const s0=Math.floor(Math.min(...allM)/60)*60;
   const e0=Math.ceil(Math.max(...allM)/60)*60;
@@ -310,8 +556,8 @@ function build(sets){
   const totPx=total*ppm;
 
   const avW=window.innerWidth-36;
-  const colW=Math.max(54,Math.floor(avW/8));
-  const fs=colW<60?7:8;
+  const colW=Math.max(60,Math.floor(avW/7));
+  const fs=colW<66?8:9;
   currentLayout={s0,e0,ppm,totPx,colW};
 
   // headers
@@ -368,10 +614,32 @@ function build(sets){
       const sm=tm(s[2]),em=tm(s[3]);
       const top=(sm-s0)*ppm;
       const h=Math.max((em-sm)*ppm-1,12);
+      const k=setKey(curDay,s);
       const b=document.createElement('div');
       b.className='set '+clsMap[si];
+      if(h<30) b.classList.add('compact');
+      b.dataset.key=k;
+      b.setAttribute('role','button');
+      b.setAttribute('tabindex','0');
+      b.setAttribute('aria-label',`${s[1]}, ${fmtTime(sm)} to ${fmtTime(em)}`);
       b.style.cssText=`top:${top}px;height:${h}px;font-size:${fs}px;`;
       b.innerHTML=`<div class="an">${s[1]}</div><div class="at">${fmtTime(sm)}–${fmtTime(em)}</div>`;
+      b.addEventListener('click',e=>{
+        e.stopPropagation();
+        showSetTooltip(b,s[1],`${fmtTime(sm)}–${fmtTime(em)}`);
+      });
+      b.addEventListener('keydown',e=>{
+        if(e.key==='Enter'||e.key===' '){
+          e.preventDefault();
+          showSetTooltip(b,s[1],`${fmtTime(sm)}–${fmtTime(em)}`);
+        }
+      });
+      const btn=document.createElement('button');
+      btn.className='pick-btn'+(mySchedule[k]?' on':'');
+      if(!scheduleMode) btn.classList.add('hidden');
+      btn.textContent=mySchedule[k]?'✓':'+';
+      btn.addEventListener('click',e=>{e.stopPropagation();togglePick(k);});
+      b.appendChild(btn);
       col.appendChild(b);
     });
     inner.appendChild(col);
@@ -382,13 +650,16 @@ function build(sets){
   hc.style.transform=`translateX(-${scroll.scrollLeft}px)`;
   tg.style.transform=`translateY(-${scroll.scrollTop}px)`;
   scroll.onscroll=()=>{
+    hideSetTooltip();
     document.getElementById('stage-hdrs').style.transform=`translateX(-${scroll.scrollLeft}px)`;
     document.getElementById('time-gutter').style.transform=`translateY(-${scroll.scrollTop}px)`;
   };
   updateNowIndicator();
+  applyPickedState();
 }
 
 function showDay(i){
+  hideSetTooltip();
   curDay=i;
   document.querySelectorAll('.day-tab').forEach((t,j)=>t.classList.toggle('active',i===j));
   build(days[i]);
@@ -396,9 +667,13 @@ function showDay(i){
 
 window.addEventListener('load',()=>{
   syncTimeFormatUI();
+  syncScheduleModeUI();
   const festivalDay=previewDayIndex??getFestivalDayIndex(getForcedPreviewNow()??new Date());
   showDay(festivalDay>=0?festivalDay:0);
   startNowIndicatorTimer();
+});
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.set')&&!e.target.closest('.set-tip')) hideSetTooltip();
 });
 window.addEventListener('resize',()=>build(days[curDay]));
 </script>
