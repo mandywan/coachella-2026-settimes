@@ -15,8 +15,9 @@
   .tf-btn { border: none; background: transparent; color: #777; font-size: 10px; font-weight: 600; padding: 4px 7px; border-radius: 5px; cursor: pointer; }
   .tf-btn.active { background: #d4a574; color: #fff; }
   .day-tabs { flex-shrink: 0; display: flex; gap: 6px; padding: 0 12px 6px; }
-  .day-tab { flex: 1; padding: 5px 0; border-radius: 8px; border: none; font-size: 11px; font-weight: 600; cursor: pointer; background: #f0f0f0; color: #999; }
+  .day-tab { flex: 1; padding: 5px 0; border-radius: 8px; border: none; font-size: 11px; font-weight: 600; cursor: pointer; background: #f0f0f0; color: #999; line-height: 1.15; }
   .day-tab.active { background: #d4a574; color: #fff; }
+  .day-tab small { display: block; font-size: 9px; font-weight: 500; opacity: 0.9; margin-top: 1px; }
   .sched-container { flex: 1; display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
   .hdr-row { flex-shrink: 0; display: flex; overflow: hidden; padding-bottom: 2px; }
   .gutter-spacer { width: 26px; flex-shrink: 0; }
@@ -31,6 +32,8 @@
   .scol { flex-shrink: 0; position: relative; border-left: 0.5px solid #e8e8e8; }
   .hline { position: absolute; left: 0; right: 0; border-top: 0.5px solid #e8e8e8; }
   .hline-half { position: absolute; left: 0; right: 0; border-top: 0.5px dashed #efefef; }
+  .now-line { position: absolute; left: 0; right: 0; border-top: 2px solid #ff5a5f; pointer-events: none; z-index: 20; }
+  .now-label { position: absolute; right: 2px; transform: translateY(-50%); font-size: 8px; font-weight: 700; line-height: 1; color: #ff5a5f; background: #fff; padding: 1px 3px; border-radius: 999px; pointer-events: none; z-index: 21; }
   .set { position: absolute; left: 1px; right: 1px; border-radius: 3px; padding: 2px 3px; overflow: hidden; }
   .set .an { font-weight: 700; line-height: 1.15; }
   .set .at { opacity: 0.65; line-height: 1.1; }
@@ -54,9 +57,9 @@
   </div>
 </div>
 <div class="day-tabs">
-  <button class="day-tab active" onclick="showDay(0)">Friday</button>
-  <button class="day-tab" onclick="showDay(1)">Saturday</button>
-  <button class="day-tab" onclick="showDay(2)">Sunday</button>
+  <button class="day-tab active" onclick="showDay(0)">Friday<small>Apr 10</small></button>
+  <button class="day-tab" onclick="showDay(1)">Saturday<small>Apr 11</small></button>
+  <button class="day-tab" onclick="showDay(2)">Sunday<small>Apr 12</small></button>
 </div>
 <div class="sched-container">
   <div class="hdr-row">
@@ -156,10 +159,59 @@ const sun=[
 ];
 
 const days=[fri,sat,sun];
+const festivalDates=[
+  {year:2026,month:4,day:10},
+  {year:2026,month:4,day:11},
+  {year:2026,month:4,day:12}
+];
+const festivalTimeZone='America/Los_Angeles';
+const urlParams=new URLSearchParams(window.location.search);
+const forceNowPreview=urlParams.get('previewNow')==='1';
+const previewDayRaw=Number(urlParams.get('previewDay'));
+const previewDayIndex=Number.isInteger(previewDayRaw)&&previewDayRaw>=0&&previewDayRaw<festivalDates.length?previewDayRaw:null;
+const previewTimeRaw=urlParams.get('previewTime');
 let curDay=0;
 let timeFormat=localStorage.getItem('timeFormat')==='24'?'24':'12';
+let currentLayout=null;
+let nowIndicatorTimer=null;
 
 function fmtTime(m){return timeFormat==='12'?f12(m):f24(m);}
+
+function getFestivalDateTimeParts(now=new Date()){
+  return new Intl.DateTimeFormat('en-US',{
+    timeZone:festivalTimeZone,
+    year:'numeric',
+    month:'numeric',
+    day:'numeric',
+    hour:'numeric',
+    minute:'numeric',
+    hourCycle:'h23'
+  }).formatToParts(now).reduce((acc,part)=>{
+    if(part.type!=='literal') acc[part.type]=Number(part.value);
+    return acc;
+  },{});
+}
+
+function getForcedPreviewNow(baseNow=new Date()){
+  if(!forceNowPreview) return null;
+  const targetDay=previewDayIndex??0;
+  const base=festivalDates[targetDay];
+  let hour=21;
+  let minute=0;
+
+  if(previewTimeRaw&&/^\d{1,2}:\d{2}$/.test(previewTimeRaw)){
+    const [h,m]=previewTimeRaw.split(':').map(Number);
+    if(h>=0&&h<=23&&m>=0&&m<=59){
+      hour=h;
+      minute=m;
+    }
+  }
+
+  const pad=n=>String(n).padStart(2,'0');
+  const laLikeIso=`${base.year}-${pad(base.month)}-${pad(base.day)}T${pad(hour)}:${pad(minute)}:00-07:00`;
+  const forced=new Date(laLikeIso);
+  return Number.isNaN(forced.getTime())?baseNow:forced;
+}
 
 function syncTimeFormatUI(){
   const b24=document.getElementById('tf-24');
@@ -179,6 +231,74 @@ function setTimeFormat(v){
   build(days[curDay]);
 }
 
+function getFestivalDayIndex(now=new Date()){
+  const parts=getFestivalDateTimeParts(now);
+
+  return festivalDates.findIndex(date=>
+    date.year===parts.year &&
+    date.month===parts.month &&
+    date.day===parts.day
+  );
+}
+
+function clearNowIndicator(){
+  document.getElementById('now-line')?.remove();
+  document.getElementById('now-label')?.remove();
+}
+
+function updateNowIndicator(now=new Date()){
+  const effectiveNow=getForcedPreviewNow(now)??now;
+
+  if(!currentLayout){
+    clearNowIndicator();
+    return;
+  }
+
+  const dayIndex=previewDayIndex??getFestivalDayIndex(effectiveNow);
+  if(dayIndex!==curDay){
+    clearNowIndicator();
+    return;
+  }
+
+  const parts=getFestivalDateTimeParts(effectiveNow);
+  const nowMinutes=parts.hour*60+parts.minute;
+  const {s0,e0,ppm}=currentLayout;
+
+  if(nowMinutes<s0||nowMinutes>e0){
+    clearNowIndicator();
+    return;
+  }
+
+  const top=(nowMinutes-s0)*ppm;
+  const inner=document.getElementById('stages-inner');
+  const gutter=document.getElementById('time-gutter');
+  let line=document.getElementById('now-line');
+  let label=document.getElementById('now-label');
+
+  if(!line){
+    line=document.createElement('div');
+    line.id='now-line';
+    line.className='now-line';
+    inner.appendChild(line);
+  }
+
+  if(!label){
+    label=document.createElement('div');
+    label.id='now-label';
+    label.className='now-label';
+    gutter.appendChild(label);
+  }
+
+  line.style.top=top+'px';
+  label.style.top=top+'px';
+  label.textContent=fmtTime(nowMinutes);
+}
+
+function startNowIndicatorTimer(){
+  if(nowIndicatorTimer) clearInterval(nowIndicatorTimer);
+  nowIndicatorTimer=setInterval(()=>updateNowIndicator(),30000);
+}
+
 function build(sets){
   const allM=sets.flatMap(s=>[tm(s[2]),tm(s[3])]);
   const s0=Math.floor(Math.min(...allM)/60)*60;
@@ -193,6 +313,7 @@ function build(sets){
   const avW=window.innerWidth-36;
   const colW=Math.max(54,Math.floor(avW/8));
   const fs=colW<60?7:8;
+  currentLayout={s0,e0,ppm,totPx,colW};
 
   // headers
   const hc=document.getElementById('stage-hdrs');
@@ -265,6 +386,7 @@ function build(sets){
     document.getElementById('stage-hdrs').style.transform=`translateX(-${scroll.scrollLeft}px)`;
     document.getElementById('time-gutter').style.transform=`translateY(-${scroll.scrollTop}px)`;
   };
+  updateNowIndicator();
 }
 
 function showDay(i){
@@ -273,7 +395,12 @@ function showDay(i){
   build(days[i]);
 }
 
-window.addEventListener('load',()=>{syncTimeFormatUI();showDay(0);});
+window.addEventListener('load',()=>{
+  syncTimeFormatUI();
+  const festivalDay=previewDayIndex??getFestivalDayIndex(getForcedPreviewNow()??new Date());
+  showDay(festivalDay>=0?festivalDay:0);
+  startNowIndicatorTimer();
+});
 window.addEventListener('resize',()=>build(days[curDay]));
 </script>
 </body>
