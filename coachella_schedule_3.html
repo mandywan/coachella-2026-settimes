@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Coachella 2025</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #111; color: #fff; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
+  .top-bar { flex-shrink: 0; padding: 10px 12px 6px; }
+  .top-bar h1 { font-size: 14px; font-weight: 700; letter-spacing: 0.5px; }
+  .top-bar p { font-size: 10px; color: #666; margin-top: 1px; }
+  .day-tabs { flex-shrink: 0; display: flex; gap: 6px; padding: 0 12px 8px; }
+  .day-tab { flex: 1; padding: 7px 0; border-radius: 8px; border: none; font-size: 13px; font-weight: 600; cursor: pointer; background: #2a2a2a; color: #666; }
+  .day-tab.active { background: #fff; color: #111; }
+  .sched-container { flex: 1; display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+  .hdr-row { flex-shrink: 0; display: flex; }
+  .gutter-spacer { width: 36px; flex-shrink: 0; }
+  .stage-hdrs { flex: 1; display: flex; overflow: hidden; }
+  .shdr { flex-shrink: 0; font-size: 8px; font-weight: 700; text-align: center; padding: 5px 1px; text-transform: uppercase; letter-spacing: 0.2px; line-height: 1.2; color: #fff; }
+  .body-row { flex: 1; display: flex; min-height: 0; overflow: hidden; }
+  .time-gutter { width: 36px; flex-shrink: 0; position: relative; overflow: hidden; }
+  .tlbl { position: absolute; right: 5px; font-size: 9px; color: #555; line-height: 1; transform: translateY(-50%); white-space: nowrap; }
+  .stages-scroll { flex: 1; overflow: scroll; -webkit-overflow-scrolling: touch; }
+  .stages-inner { display: flex; position: relative; }
+  .scol { flex-shrink: 0; position: relative; border-left: 0.5px solid #1e1e1e; }
+  .hline { position: absolute; left: 0; right: 0; border-top: 0.5px solid #1e1e1e; }
+  .set { position: absolute; left: 1px; right: 1px; border-radius: 3px; padding: 2px 3px; overflow: hidden; }
+  .set .an { font-weight: 700; line-height: 1.15; }
+  .set .at { opacity: 0.65; line-height: 1.1; }
+  .s0{background:#3d2fa8;color:#d4d0ff}.s1{background:#126648;color:#a0f0cc}
+  .s2{background:#8a2e10;color:#ffd0b8}.s3{background:#7a1838;color:#ffc0d4}
+  .s4{background:#10408a;color:#b0d4ff}.s5{background:#2c5008;color:#c0e888}
+  .s6{background:#7a4400;color:#ffd88a}.s7{background:#7a1010;color:#ffb8b8}
+</style>
+</head>
+<body>
+<div class="top-bar">
+  <h1>COACHELLA 2025 — WEEKEND 1</h1>
+  <p>Scroll ↔ for stages · All times 24h</p>
+</div>
+<div class="day-tabs">
+  <button class="day-tab active" onclick="showDay(0)">Friday</button>
+  <button class="day-tab" onclick="showDay(1)">Saturday</button>
+  <button class="day-tab" onclick="showDay(2)">Sunday</button>
+</div>
+<div class="sched-container">
+  <div class="hdr-row">
+    <div class="gutter-spacer"></div>
+    <div class="stage-hdrs" id="stage-hdrs"></div>
+  </div>
+  <div class="body-row">
+    <div class="time-gutter" id="time-gutter"></div>
+    <div class="stages-scroll" id="stages-scroll">
+      <div class="stages-inner" id="stages-inner"></div>
+    </div>
+  </div>
+</div>
+<script>
+const stages=['Coachella','Outdoor','Sonora','Gobi','Mojave','Sahara','Yuma','Quasar'];
+const hdrBg=['#3d2fa8','#126648','#8a2e10','#7a1838','#10408a','#2c5008','#7a4400','#7a1010'];
+const clsMap=['s0','s1','s2','s3','s4','s5','s6','s7'];
+
+function tm(t){const[h,m]=t.split(':').map(Number);return(h+12)*60+m;}
+function f24(m){let h=Math.floor(m/60)%24;return String(h).padStart(2,'0')+':'+String(m%60).padStart(2,'0');}
+
+const fri=[
+  [0,'Anyma','12:00','12:50'],[0,'Sabrina Carpenter','9:05','10:35'],[0,'The xx','7:00','7:55'],
+  [0,'Teddy Swims','5:30','6:20'],[0,'Record Safari','4:15','5:20'],
+  [1,'Disclosure','10:35','11:50'],[1,'Turnstile','8:05','9:00'],[1,'Lykke Li','5:20','6:10'],
+  [1,'Dabeull','4:00','4:50'],[1,'Tiffany Tyson','2:50','3:50'],
+  [2,'Not For Radio','11:50','12:50'],[2,'Hot Mulligan','10:00','10:45'],[2,'Cachirula & Loojan','8:25','9:05'],
+  [2,'Ninajirachi','7:10','8:00'],[2,'The Two Lips','6:00','6:40'],[2,'Fleshwater','4:50','5:30'],
+  [2,'Wednesday','3:40','4:20'],[2,'Carolina Durante','2:35','3:15'],[2,'Febuary','1:40','2:10'],[2,'Doom Dave','1:00','1:40'],
+  [3,'Creepy Nuts','11:05','11:55'],[3,'Joost','9:50','10:35'],[3,'Holly Humberstone','8:25','9:10'],
+  [3,'fakemink','7:20','8:00'],[3,'CMAT','6:15','6:55'],[3,'Joyce Manor','5:10','5:50'],
+  [3,'NewDad','4:00','4:40'],[3,'Bob Baker Marionettes','2:55','3:35'],[3,'Cahuilla Bird Singers','2:15','2:45'],
+  [4,'Blood Orange','11:55','12:45'],[4,'Ethel Cain','10:35','11:25'],[4,'Moby','8:10','9:00'],
+  [4,'Devo','6:45','7:40'],[4,'Central Cee','5:30','6:15'],[4,'BINI','4:15','5:00'],
+  [4,'Slayyter','3:00','3:45'],[4,'Novasoul','2:00','2:50'],
+  [5,'Sexyy Red','12:05','12:55'],[5,'Swae Lee','10:50','11:40'],[5,'Levity','9:15','10:20'],
+  [5,'KATSEYE','8:00','8:45'],[5,'Marlon Hoffstadt','6:15','7:15'],[5,'HUGEL','4:50','5:50'],
+  [5,'Youna','3:45','4:35'],[5,'MASSIO','2:30','3:35'],
+  [6,'Gordo','11:15','12:55'],[6,'Max Styler','9:45','11:15'],[6,'Max Dean x Luke Dean','8:30','9:45'],
+  [6,'Prospa','7:15','8:30'],[6,'Kettama','6:00','7:15'],[6,'Rossi. x Chloé Caillet','4:45','6:00'],
+  [6,'Groove Armada','3:45','4:45'],[6,'Arodes','2:45','3:45'],[6,'Jessica Brankka','1:45','2:45'],[6,'Sahar Z','1:00','1:45'],
+  [7,'PAWSA','9:00','11:00'],[7,'Deep Dish','7:00','9:00'],[7,'Tiga','5:00','7:00'],
+];
+const sat=[
+  [0,'Justin Bieber','11:25','12:25'],[0,'The Strokes','9:00','10:10'],[0,'GIVEON','7:00','7:50'],
+  [0,'Addison Rae','5:30','6:20'],[0,'Jaqck Glam','4:15','5:20'],
+  [1,'David Byrne','10:20','11:20'],[1,'Labrinth','8:30','9:25'],[1,'SOMBR','7:05','7:55'],
+  [1,'Alex G','5:10','6:00'],[1,'Los Hermanos Flores','3:55','4:45'],[1,'Blondshell','2:40','3:25'],
+  [2,'Mind Enterprises','9:45','10:35'],[2,'54 Ultra','7:50','8:30'],[2,'rusowsky','6:40','7:20'],
+  [2,'Ceremony','5:30','6:10'],[2,'Ecca Vandal','4:20','5:00'],[2,'Freak Slug','3:10','3:50'],
+  [2,'Die Spitz','2:00','2:40'],[2,'Triste Juventud','1:00','2:00'],
+  [3,'Morat','10:10','11:00'],[3,'BIA','9:00','9:45'],[3,'Davido','7:50','8:35'],
+  [3,'Geese','6:15','7:00'],[3,'Luisa Sonza','5:10','5:50'],[3,'WHATMORE','4:05','4:45'],[3,'Noga Erez','2:05','2:50'],
+  [4,'Interpol','10:15','11:15'],[4,'PinkPantheress','8:55','9:45'],[4,'Taemin','7:30','8:20'],
+  [4,'Royel Otis','5:50','6:35'],[4,'Fujii Kaze','4:30','5:20'],[4,'Jack White','3:00','3:45'],
+  [5,'Worship','11:55','12:55'],[5,'Adriatique','10:30','11:25'],[5,'REZZ','9:10','10:05'],
+  [5,'Nine Inch Noize','8:00','8:45'],[5,'YOUSUKE YUKIMATSU','6:15','7:10'],[5,'Hamdi','5:00','5:55'],
+  [5,'ZULAN','4:00','4:50'],[5,'TEED','2:50','3:50'],[5,'Seek-One','2:00','2:45'],
+  [6,'Armin x Adam Beyer','11:00','12:55'],[6,'Boys Noize','9:45','11:00'],[6,'Bedouin','8:15','9:45'],
+  [6,'SOSA','6:45','8:15'],[6,'Ben Sterling','5:30','6:45'],[6,'Mahmut Orhan','4:15','5:30'],
+  [6,'Riordan','3:00','4:15'],[6,'GENESI','2:00','3:00'],[6,'Yamagucci','1:00','2:00'],
+  [7,'David Guetta','9:00','11:00'],[7,'Afrojack x Shimza','7:00','9:00'],[7,'Joezi','5:00','7:00'],
+];
+const sun=[
+  [0,'KAROL G','9:55','11:55'],[0,'Young Thug','7:50','8:40'],[0,'Major Lazer','6:10','7:10'],
+  [0,'Wet Leg','4:45','5:30'],[0,'Tijuana Panthers','3:40','4:15'],[0,'Gabe Real','2:45','3:30'],
+  [1,'BIGBANG','10:30','11:30'],[1,'Laufey','8:40','9:40'],[1,'Foster the People','6:45','7:40'],
+  [1,'CLIPSE','5:15','6:10'],[1,'Gigi Perez','4:00','4:45'],[1,'Juicewon','3:00','3:50'],
+  [2,'French Police','9:10','10:00'],[2,'DRAIN','8:00','8:40'],[2,'ROZ','6:40','7:30'],
+  [2,'Los Retros','5:30','6:10'],[2,'Jane Remover','4:20','5:00'],[2,'Model/Actriz','3:10','3:50'],
+  [2,'Glitterer','2:00','2:40'],[2,'Panda & Chok','1:00','2:00'],
+  [3,'The Rapture','9:05','9:55'],[3,'TOMORA','7:45','8:35'],[3,'Black Flag','6:30','7:05'],
+  [3,'Oklou','5:15','6:00'],[3,'COBRAH','4:05','4:50'],[3,'The Chats','3:00','3:40'],[3,'flowerovlove','2:05','2:35'],
+  [4,'FKA twigs','8:45','10:00'],[4,'Iggy Pop','7:10','8:10'],[4,'Suicidal Tendencies','5:35','6:25'],
+  [4,'Little Simz','4:25','5:10'],[4,'Samia','3:15','3:55'],[4,'wyldeflower','2:30','3:10'],
+  [5,'Kaskade','10:45','11:55'],[5,'Subtronics','9:05','10:05'],[5,'Mochakk','7:25','8:25'],
+  [5,'Duke Dumont','6:10','7:10'],[5,'BUNT.','4:45','5:45'],[5,'Girl Math','3:35','4:35'],[5,'LOBOMAN','2:30','3:30'],
+  [6,'Green Velvet x AYYBO','10:00','11:55'],[6,'WhoMadeWho','8:30','10:00'],[6,'Royksopp','7:00','8:30'],
+  [6,'Carlita x Josh Baker','5:30','7:00'],[6,'MESTIZA','4:15','5:30'],[6,'&friends','3:00','4:15'],
+  [6,'AZZECCA','2:00','3:00'],[6,'LE YORA','1:00','2:00'],
+  [7,'Fatboy Slim','8:00','10:00'],[7,'JOY (Anonymous)','6:00','8:00'],[7,'Jazzy','4:00','6:00'],
+];
+
+const days=[fri,sat,sun];
+let curDay=0;
+
+function build(sets){
+  const allM=sets.flatMap(s=>[tm(s[2]),tm(s[3])]);
+  const s0=Math.floor(Math.min(...allM)/60)*60;
+  const e0=Math.ceil(Math.max(...allM)/60)*60;
+  const total=e0-s0;
+
+  const scroll=document.getElementById('stages-scroll');
+  const avH=scroll.clientHeight||600;
+  const ppm=avH/total;
+  const totPx=total*ppm;
+
+  const avW=window.innerWidth-36;
+  const colW=Math.max(54,Math.floor(avW/8));
+  const fs=colW<60?7:8;
+
+  // headers
+  const hc=document.getElementById('stage-hdrs');
+  hc.innerHTML='';
+  stages.forEach((s,i)=>{
+    const d=document.createElement('div');
+    d.className='shdr';
+    d.style.cssText=`width:${colW}px;background:${hdrBg[i]};`;
+    d.textContent=s;
+    hc.appendChild(d);
+  });
+
+  // time gutter
+  const tg=document.getElementById('time-gutter');
+  tg.style.height=totPx+'px';
+  tg.innerHTML='';
+  for(let m=s0;m<=e0;m+=60){
+    const top=(m-s0)*ppm;
+    const l=document.createElement('div');
+    l.className='tlbl';
+    l.style.top=top+'px';
+    l.textContent=f24(m);
+    tg.appendChild(l);
+  }
+
+  // stages
+  const inner=document.getElementById('stages-inner');
+  inner.innerHTML='';
+  inner.style.cssText=`height:${totPx}px;width:${colW*8}px;`;
+
+  for(let si=0;si<8;si++){
+    const col=document.createElement('div');
+    col.className='scol';
+    col.style.cssText=`width:${colW}px;height:${totPx}px;`;
+    for(let m=s0;m<=e0;m+=60){
+      const ln=document.createElement('div');
+      ln.className='hline';
+      ln.style.top=((m-s0)*ppm)+'px';
+      col.appendChild(ln);
+    }
+    sets.filter(s=>s[0]===si).forEach(s=>{
+      const sm=tm(s[2]),em=tm(s[3]);
+      const top=(sm-s0)*ppm;
+      const h=Math.max((em-sm)*ppm-1,12);
+      const b=document.createElement('div');
+      b.className='set '+clsMap[si];
+      b.style.cssText=`top:${top}px;height:${h}px;font-size:${fs}px;`;
+      b.innerHTML=`<div class="an">${s[1]}</div><div class="at">${f24(sm)}–${f24(em)}</div>`;
+      col.appendChild(b);
+    });
+    inner.appendChild(col);
+  }
+
+  scroll.scrollTo(0,0);
+  scroll.onscroll=()=>{
+    document.getElementById('stage-hdrs').style.transform=`translateX(-${scroll.scrollLeft}px)`;
+  };
+}
+
+function showDay(i){
+  curDay=i;
+  document.querySelectorAll('.day-tab').forEach((t,j)=>t.classList.toggle('active',i===j));
+  build(days[i]);
+}
+
+window.addEventListener('load',()=>showDay(0));
+window.addEventListener('resize',()=>build(days[curDay]));
+</script>
+</body>
+</html>
