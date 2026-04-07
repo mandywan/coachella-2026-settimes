@@ -3,40 +3,42 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Coachella 2025</title>
+<title>Coachella 2026</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #111; color: #fff; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
+  body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #fff; color: #333; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
   .top-bar { flex-shrink: 0; padding: 10px 12px 6px; }
-  .top-bar h1 { font-size: 14px; font-weight: 700; letter-spacing: 0.5px; }
-  .top-bar p { font-size: 10px; color: #666; margin-top: 1px; }
+  .top-bar h1 { font-size: 14px; font-weight: 700; letter-spacing: 0.5px; color: #333; }
+  .top-bar p { font-size: 10px; color: #999; margin-top: 1px; }
   .day-tabs { flex-shrink: 0; display: flex; gap: 6px; padding: 0 12px 8px; }
-  .day-tab { flex: 1; padding: 7px 0; border-radius: 8px; border: none; font-size: 13px; font-weight: 600; cursor: pointer; background: #2a2a2a; color: #666; }
-  .day-tab.active { background: #fff; color: #111; }
+  .day-tab { flex: 1; padding: 5px 0; border-radius: 8px; border: none; font-size: 11px; font-weight: 600; cursor: pointer; background: #f0f0f0; color: #999; }
+  .day-tab.active { background: #d4a574; color: #fff; }
   .sched-container { flex: 1; display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
-  .hdr-row { flex-shrink: 0; display: flex; }
+  .hdr-row { flex-shrink: 0; display: flex; overflow: hidden; }
   .gutter-spacer { width: 36px; flex-shrink: 0; }
-  .stage-hdrs { flex: 1; display: flex; overflow: hidden; }
-  .shdr { flex-shrink: 0; font-size: 8px; font-weight: 700; text-align: center; padding: 5px 1px; text-transform: uppercase; letter-spacing: 0.2px; line-height: 1.2; color: #fff; }
+  .stage-hdrs { flex: 1; overflow: hidden; min-height: 0; position: relative; }
+  .stage-hdrs-inner { display: flex; }
+  .shdr { flex-shrink: 0; font-size: 8px; font-weight: 700; text-align: center; padding: 5px 1px; text-transform: uppercase; letter-spacing: 0.2px; line-height: 1.2; color: #333; }
   .body-row { flex: 1; display: flex; min-height: 0; overflow: hidden; }
   .time-gutter { width: 36px; flex-shrink: 0; position: relative; overflow: hidden; }
-  .tlbl { position: absolute; right: 5px; font-size: 9px; color: #555; line-height: 1; transform: translateY(-50%); white-space: nowrap; }
+  .tlbl { position: absolute; right: 5px; font-size: 9px; color: #bbb; line-height: 1; transform: translateY(-50%); white-space: nowrap; }
   .stages-scroll { flex: 1; overflow: scroll; -webkit-overflow-scrolling: touch; }
   .stages-inner { display: flex; position: relative; }
-  .scol { flex-shrink: 0; position: relative; border-left: 0.5px solid #1e1e1e; }
-  .hline { position: absolute; left: 0; right: 0; border-top: 0.5px solid #1e1e1e; }
+  .scol { flex-shrink: 0; position: relative; border-left: 0.5px solid #e8e8e8; }
+  .hline { position: absolute; left: 0; right: 0; border-top: 0.5px solid #e8e8e8; }
+  .hline-half { position: absolute; left: 0; right: 0; border-top: 0.5px dashed #efefef; }
   .set { position: absolute; left: 1px; right: 1px; border-radius: 3px; padding: 2px 3px; overflow: hidden; }
   .set .an { font-weight: 700; line-height: 1.15; }
   .set .at { opacity: 0.65; line-height: 1.1; }
-  .s0{background:#3d2fa8;color:#d4d0ff}.s1{background:#126648;color:#a0f0cc}
-  .s2{background:#8a2e10;color:#ffd0b8}.s3{background:#7a1838;color:#ffc0d4}
-  .s4{background:#10408a;color:#b0d4ff}.s5{background:#2c5008;color:#c0e888}
-  .s6{background:#7a4400;color:#ffd88a}.s7{background:#7a1010;color:#ffb8b8}
+  .s0{background:#d4b5e8;color:#5a3d8a}.s1{background:#c9d9a9;color:#5a8a3d}
+  .s2{background:#e8c4a8;color:#8a5a3d}.s3{background:#e8a8c9;color:#8a3d5a}
+  .s4{background:#b8d4e8;color:#3d5a8a}.s5{background:#d9e8a9;color:#7a8a2c}
+  .s6{background:#f0d8b8;color:#8a6a2c}.s7{background:#e8b8b8;color:#8a3a3a}
 </style>
 </head>
 <body>
 <div class="top-bar">
-  <h1>COACHELLA 2025 — WEEKEND 1</h1>
+  <h1>COACHELLA 2026 — WEEKEND 1</h1>
   <p>Scroll ↔ for stages · All times 24h</p>
 </div>
 <div class="day-tabs">
@@ -47,7 +49,7 @@
 <div class="sched-container">
   <div class="hdr-row">
     <div class="gutter-spacer"></div>
-    <div class="stage-hdrs" id="stage-hdrs"></div>
+    <div class="stage-hdrs"><div class="stage-hdrs-inner" id="stage-hdrs"></div></div>
   </div>
   <div class="body-row">
     <div class="time-gutter" id="time-gutter"></div>
@@ -58,7 +60,7 @@
 </div>
 <script>
 const stages=['Coachella','Outdoor','Sonora','Gobi','Mojave','Sahara','Yuma','Quasar'];
-const hdrBg=['#3d2fa8','#126648','#8a2e10','#7a1838','#10408a','#2c5008','#7a4400','#7a1010'];
+const hdrBg=['#d4b5e8','#c9d9a9','#e8c4a8','#e8a8c9','#b8d4e8','#d9e8a9','#f0d8b8','#e8b8b8'];
 const clsMap=['s0','s1','s2','s3','s4','s5','s6','s7'];
 
 function tm(t){const[h,m]=t.split(':').map(Number);return(h+12)*60+m;}
@@ -147,6 +149,8 @@ function build(sets){
   // headers
   const hc=document.getElementById('stage-hdrs');
   hc.innerHTML='';
+  hc.style.width=`${colW*8}px`;
+  hc.style.transform='translateX(0px)';
   stages.forEach((s,i)=>{
     const d=document.createElement('div');
     d.className='shdr';
@@ -160,7 +164,9 @@ function build(sets){
   tg.style.height=totPx+'px';
   tg.innerHTML='';
   for(let m=s0;m<=e0;m+=60){
-    const top=(m-s0)*ppm;
+    let top=(m-s0)*ppm;
+    if (m===s0) top+=6;
+    if (m===e0) top-=6;
     const l=document.createElement('div');
     l.className='tlbl';
     l.style.top=top+'px';
@@ -182,6 +188,13 @@ function build(sets){
       ln.className='hline';
       ln.style.top=((m-s0)*ppm)+'px';
       col.appendChild(ln);
+
+      if (m < e0) {
+        const half = document.createElement('div');
+        half.className = 'hline-half';
+        half.style.top = ((m - s0 + 30) * ppm) + 'px';
+        col.appendChild(half);
+      }
     }
     sets.filter(s=>s[0]===si).forEach(s=>{
       const sm=tm(s[2]),em=tm(s[3]);
@@ -196,7 +209,9 @@ function build(sets){
     inner.appendChild(col);
   }
 
+  scroll.scrollLeft=0;
   scroll.scrollTo(0,0);
+  hc.style.transform=`translateX(-${scroll.scrollLeft}px)`;
   scroll.onscroll=()=>{
     document.getElementById('stage-hdrs').style.transform=`translateX(-${scroll.scrollLeft}px)`;
   };
